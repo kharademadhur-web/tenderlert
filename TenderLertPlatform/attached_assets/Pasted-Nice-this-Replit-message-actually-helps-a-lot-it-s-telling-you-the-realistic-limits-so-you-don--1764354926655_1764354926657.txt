@@ -1,0 +1,383 @@
+Nice, this Replit message actually helps a lot – it’s telling you the *realistic* limits so you don’t bang your head on a wall later.
+
+Short answer:
+
+> **Pick Option 1: Full JavaScript stack (Next.js + Express + PostgreSQL).**
+> It fits Replit perfectly, is easier to run in one project, and PostgreSQL is *better* than MongoDB for your tender data anyway.
+
+Now I’ll give you **two things**:
+
+1. What to reply to Replit AI
+2. A **new master prompt** (updated for Next.js + Express + PostgreSQL) that includes *everything* you want.
+
+---
+
+## 1️⃣ What you should reply to Replit AI
+
+Send this back to Replit:
+
+> **“Yes, proceed with Option 1 (Full JavaScript stack with Next.js + Express + PostgreSQL).
+> Please build the full TenderLert SaaS with frontend, backend, PostgreSQL DB, auth, client + admin dashboards, Groq AI categorization, and n8n webhook integration as per the following detailed requirements:”**
+
+…and then paste the master prompt below 👇
+
+---
+
+## 2️⃣ MASTER PROMPT (UPDATED FOR REPLIT: NEXT.JS + EXPRESS + POSTGRES)
+
+Copy **all of this** after your “yes, proceed” message:
+
+---
+
+**MASTER SPEC FOR TENDERLERT (NEXT.JS + EXPRESS + POSTGRES)**
+
+You are building a full production-ready SaaS platform called **TenderLert** inside a single Replit project.
+
+Use this stack:
+
+* **Frontend:** Next.js 14 (App Router) + React + TailwindCSS
+* **Backend:** Node.js + Express
+* **Database:** PostgreSQL (via a Node ORM or query builder – e.g. Prisma or Knex)
+* **Auth:** JWT (access token)
+* **AI:** Groq (Grok) API for tender categorization
+* **Automation:** n8n webhooks for client registration & tender events
+
+### 🎨 Branding
+
+* Brand Name: **TenderLert**
+* Tagline: **Smart Tender Alerts for Indian Businesses**
+* Colors: Blue `#2563eb`, White, Slate Gray
+* Font: Inter
+* UI: Clean, modern, SaaS-style dashboard + marketing site
+
+---
+
+### 📁 Project Structure (Inside Replit)
+
+Create a monorepo-style structure:
+
+* `/frontend` → Next.js 14 App Router app
+
+  * `/frontend/app`
+  * `/frontend/components`
+  * `/frontend/styles`
+  * `/frontend/lib`
+
+* `/backend` → Express server
+
+  * `/backend/src/index.ts` or `index.js`
+  * `/backend/src/routes`
+  * `/backend/src/controllers`
+  * `/backend/src/middleware`
+  * `/backend/src/db`
+
+* `/shared` (optional) for shared types/constants if needed
+
+Add npm scripts so I can run:
+
+* `npm run dev:frontend` → Next dev server
+* `npm run dev:backend` → Express dev server
+
+---
+
+### 🏗 FRONTEND REQUIREMENTS (Next.js)
+
+Use the **App Router**.
+
+#### 1. Public Marketing Pages
+
+Create these routes under `/frontend/app`:
+
+1. `/` (Home)
+
+   * Hero: “Smart Tender Alerts for Indian Businesses”
+   * Sections:
+
+     * How it works (Scrape → Classify → Match → Email)
+     * Supported Portals (GeM, eProcure, MahaTenders)
+     * Benefits (Save time, never miss tenders, category-based alerts)
+     * CTA button → “Get Daily Alerts” → links to `/register`
+
+2. `/pricing`
+
+   * Plans:
+
+     * Starter – ₹499/month
+     * Business – ₹999/month
+     * Enterprise – ₹2499/month
+   * Feature comparison table
+   * CTA: “Start Free Trial” → `/register`
+
+3. `/contact`
+
+   * Contact form:
+
+     * Name
+     * Email
+     * Message
+   * On submit → POST to backend `/api/contact`
+   * Backend forwards to n8n webhook `N8N_CONTACT_WEBHOOK`
+
+4. `/register`
+
+   * Client signup form fields:
+
+     * Full Name
+     * Email
+     * Phone
+     * Company Name
+     * Category Interested (dropdown: Construction, IT, Medical, Security, etc.)
+   * On submit → POST to backend `/api/clients/register`
+   * Backend:
+
+     * Saves client to PostgreSQL
+     * Sends data to n8n webhook `N8N_REGISTER_WEBHOOK`
+
+#### 2. Auth Pages
+
+5. `/login`
+6. `/signup`
+
+* Auth flow:
+
+  * Signup → POST to backend `/api/auth/signup`
+  * Login → POST to backend `/api/auth/login`
+  * Backend returns JWT access token
+  * Store token in `localStorage` or `httpOnly` cookie (you decide best within Replit constraints)
+  * Protect dashboard routes using middleware/hooks on frontend that check auth
+
+#### 3. Client Dashboard
+
+Route: `/dashboard`
+
+Features:
+
+* Shows “Today’s Tenders” table:
+
+  * Columns:
+
+    * Portal
+    * Bid/Tender ID
+    * Title
+    * Department
+    * Category (AI-based)
+    * Bid End Date
+    * Source URL (clickable)
+* Filter controls:
+
+  * By Category
+  * By Portal (GeM, eProcure, MahaTenders)
+* Profile section:
+
+  * Show client name, email, selected category
+  * Allow updating preferred categories via PATCH `/api/clients/preferences`
+
+This route must be **protected** (only logged-in clients).
+
+#### 4. Admin Dashboard
+
+Route: `/admin`
+
+Features:
+
+* Admin login (same `/login` but admin role or separate entry)
+* Pages or sections:
+
+  * View all clients
+  * View all tenders in DB
+  * Filter by portal / category / date
+  * Button: “Re-run today’s categorization” → calls backend `/api/admin/rerun-today`
+  * Button: “Trigger Email Alerts Now” → calls backend `/api/admin/send-alerts`
+  * Form to manually add a tender → POST `/api/tenders/manual`
+
+Admin route must be protected and only accessible when `role = admin`.
+
+---
+
+### 🔗 BACKEND REQUIREMENTS (Express + PostgreSQL)
+
+Use Express with a clear folder structure.
+
+#### Database
+
+Use PostgreSQL via Prisma or Knex.
+Create tables:
+
+1. `users`
+
+   * id (PK)
+   * name
+   * email (unique)
+   * password_hash
+   * role (`client` | `admin`)
+   * created_at
+
+2. `clients`
+
+   * id (PK)
+   * user_id (FK → users.id)
+   * company_name
+   * phone
+   * category_interested
+   * created_at
+
+3. `tenders`
+
+   * id (PK)
+   * portal_name
+   * bid_number
+   * title
+   * quantity
+   * department
+   * state_location
+   * item_category
+   * bid_type
+   * estimated_value
+   * bid_start_date
+   * bid_end_date
+   * delivery_location
+   * emd_amount
+   * min_annual_turnover
+   * source_url
+   * ai_category
+   * created_at
+
+4. `email_logs`
+
+   * id
+   * client_id
+   * tender_id
+   * sent_at
+
+---
+
+#### API Routes
+
+Create these Express routes (under `/backend/src/routes`):
+
+**Auth:**
+
+* `POST /api/auth/signup`
+* `POST /api/auth/login`
+
+  * Use bcrypt for password hashing
+  * JWT tokens
+  * Middleware `requireAuth` and `requireAdmin`
+
+**Clients:**
+
+* `POST /api/clients/register`
+
+  * Save client + user
+  * Send payload to `N8N_REGISTER_WEBHOOK`
+* `GET /api/clients/me` (auth required)
+* `PATCH /api/clients/preferences`
+
+**Tenders:**
+
+* `GET /api/tenders/today`
+
+  * Return tenders where `bid_end_date >= today` or `created_at = today`
+* `POST /api/tenders/manual` (admin)
+
+**Admin:**
+
+* `GET /api/admin/clients`
+* `GET /api/admin/tenders`
+* `POST /api/admin/rerun-today`
+
+  * Re-calls AI categorizer for today’s tenders
+* `POST /api/admin/send-alerts`
+
+  * For each client:
+
+    * Find tenders matching category
+    * Send email (simple SMTP or placeholder)
+    * Write to `email_logs`
+
+**Contact:**
+
+* `POST /api/contact`
+
+  * Forwards body to `N8N_CONTACT_WEBHOOK`
+
+---
+
+### 🧠 AI (Groq / Grok) Categorization
+
+Create service:
+
+* `/backend/src/services/aiCategorizer.ts` (or `.js`)
+
+Function:
+
+* `categorizeTender(title, department, itemCategory) -> ai_category`
+
+Use Groq API:
+
+* Endpoint: `https://api.groq.com/openai/v1/chat/completions`
+* Model: `grok-beta` (or appropriate)
+* Prompt: classify tender into one of:
+
+  * Construction / Civil
+  * IT / Software / Networking
+  * Medical / Healthcare
+  * Electrical / Electronics
+  * Machinery / Industrial
+  * Transport / Automotive
+  * Security / Defence
+  * Housekeeping / Manpower
+  * Agriculture / Rural Development
+  * Miscellaneous
+
+Integrate categorization into:
+
+* `POST /api/tenders/manual`
+* Any import script if later added
+
+---
+
+### 🌐 ENVIRONMENT VARIABLES
+
+Support `.env` with:
+
+* `DATABASE_URL` (PostgreSQL connection)
+* `JWT_SECRET`
+* `GROQ_API_KEY`
+* `N8N_REGISTER_WEBHOOK`
+* `N8N_CONTACT_WEBHOOK`
+
+---
+
+### ✅ FINAL EXPECTATIONS
+
+When you finish:
+
+1. The Replit project should have:
+
+   * Working Next.js frontend
+   * Working Express backend
+   * Working PostgreSQL connection
+2. I should be able to:
+
+   * Sign up as a client
+   * Register for alerts
+   * Log in and see dashboard
+   * As admin: see clients & tenders
+3. AI categorization endpoint should work and store `ai_category` on tenders.
+4. n8n webhooks should be called on register/contact.
+5. No TODOs, no placeholders; everything should run with minimal config tweaks from me.
+
+Build the whole TenderLert SaaS now using this JavaScript stack.
+
+---
+
+That’s your **all-in-one master prompt** customized for:
+
+* Replit
+* Next.js + Express
+* PostgreSQL
+* Groq AI
+* n8n
+
+If Replit AI comes back with more questions, you can paste its reply here and I’ll help you tweak the prompt again.

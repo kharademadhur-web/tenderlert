@@ -1,0 +1,238 @@
+You are building a full production-ready SaaS platform called **TenderLert** inside a single Replit project.
+
+## ✅ GOAL
+Create BOTH:
+1. A complete **Next.js (App Router) frontend**
+2. A complete **FastAPI backend**
+3. Fully connect both
+4. Integrate with **n8n webhooks**
+5. Add authentication (JWT)
+6. Add client dashboard
+7. Add admin dashboard
+8. Add database (MongoDB)
+9. Add SEO, branding, UI components, forms, routing
+10. The entire project should run inside Replit, with no errors.
+
+---
+
+# 🎨 BRAND & GLOBAL SETTINGS
+Brand Name: **TenderLert**
+Tagline: **Smart Tender Alerts for Indian Businesses**
+Colors: Blue (#2563eb), White, Slate-gray
+Fonts: Inter
+UI Framework: TailwindCSS
+Icons: React Icons
+State Management: React Context API
+
+---
+
+# 📁 PROJECT STRUCTURE (CREATE ALL FILES)
+Create this exact structure:
+
+/app
+/api
+register-client/route.js
+login/route.js
+signup/route.js
+tenders/route.js
+/dashboard
+/admin
+/pricing
+/contact
+/register
+/layout.js
+/page.js
+
+/backend
+main.py
+auth.py
+database.py
+models.py
+routers
+clients.py
+tenders.py
+auth.py
+
+/components
+Navbar.jsx
+Footer.jsx
+Button.jsx
+Input.jsx
+PricingCard.jsx
+Section.jsx
+
+/styles
+globals.css
+
+/utils
+axiosClient.js
+auth.js
+
+yaml
+Copy code
+
+---
+
+# 🏗 FRONTEND REQUIREMENTS (Next.js 14 App Router)
+
+## 1. HOMEPAGE (Modern UI)
+Sections:
+- Hero section (“Smart Tender Alerts for Indian Businesses”)
+- How TenderLert works
+- Supported Portals (GeM, eProcure, MahaTenders)
+- CTA “Get Daily Alerts”
+- Footer
+
+---
+
+# 📝 2. REGISTER PAGE (Client Signup Form)
+Form fields:
+- Full Name
+- Email
+- Phone
+- Company
+- Category Interested (IT/Construction/Medical/Security/etc.)
+- Button: “Start Receiving Alerts”
+
+On submit:
+POST → `/api/register-client`
+
+Then backend → n8n webhook:
+`https://YOUR-N8N-URL/webhook/register-client`
+
+---
+
+# 💵 3. PRICING PAGE
+Monthly Plan:
+- Starter (₹499/mo)
+- Business (₹999/mo)
+- Enterprise (₹2499/mo)
+
+Add clean pricing section + CTA.
+
+---
+
+# 📞 4. CONTACT PAGE
+Form → POST → backend → n8n webhook:
+`https://YOUR-N8N-URL/webhook/contact`
+
+---
+
+# 🔐 5. AUTHENTICATION (JWT)
+Implement:
+- Signup
+- Login
+- JWT token generation
+- Store token in httpOnly cookie
+- Middleware for protected dashboard routes
+
+---
+
+# 📊 6. DASHBOARD (CLIENT)
+Dashboard for logged-in clients:
+- Show “Today’s Tenders” (GET → /api/tenders)
+- Filters by category
+- Table view (Title, Department, Last Date, Category)
+- Profile section (Name, Email, Category Interested)
+
+---
+
+# 🛠 7. ADMIN DASHBOARD
+Admin login → JWT admin role.
+
+Admin can:
+- View all clients
+- View all tenders from DB
+- Re-run n8n workflows manually
+- Add manual tenders
+- Edit/Delete entries
+
+---
+
+# 🔗 BACKEND (FASTAPI)
+
+Create a complete backend under `/backend`.
+
+## FastAPI Features:
+- User signup
+- User login
+- JWT issue & verification
+- Save clients to MongoDB
+- Save tenders to MongoDB
+- Endpoint to fetch today's tenders
+- Endpoint to fetch client list (admin only)
+
+### Backend Routes:
+POST /signup
+POST /login
+POST /client/add
+GET /client/all
+POST /tender/add
+GET /tenders/today
+
+yaml
+Copy code
+
+---
+
+# 🧠  AI INTEGRATION (GROQ / GROK)
+Create `/api/categorize` endpoint in frontend that calls backend, which calls Groq API:
+
+### Backend:
+- Route: POST `/categorize`
+- Input: tender title
+- Output: AI category (IT, Construction, Medical, etc.)
+- Use Groq API key (I will enter in env)
+
+---
+
+# 🔧 INTEGRATION WITH N8N
+Backend must automatically forward:
+- New client registrations → n8n webhook
+- New tender added → n8n webhook
+
+---
+
+# 🗄️ DATABASE (MongoDB)
+Use `pymongo`.
+
+Collections:
+- clients
+- tenders
+- users
+- admins
+- categories
+
+---
+
+# 🔐 ENV VARIABLES (CREATE .env FILE)
+Create `.env` in backend:
+
+MONGO_URL="mongodb+srv://..."
+JWT_SECRET="mysecret"
+GROQ_API_KEY="sk-xxxx"
+N8N_REGISTER_WEBHOOK="https://..."
+N8N_CONTACT_WEBHOOK="https://..."
+
+sql
+Copy code
+
+---
+
+# 🚀 FINAL REQUIREMENTS
+When finished:
+
+1. Show me **complete file structure**
+2. Show me **all code for every file**
+3. Run both frontend and backend servers
+4. Fix any errors until everything works
+5. Ensure frontend connects to backend
+6. Ensure backend connects to MongoDB
+7. Ensure webhooks & Groq API calls work
+8. Website must load with full UI and pages
+
+DO NOT skip any step.
+DO NOT leave TODOs.
+DO NOT use placeholders.
+
+Build the entire TenderLert SaaS in Replit now.
