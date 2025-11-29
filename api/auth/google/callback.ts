@@ -1,4 +1,3 @@
-import { createClient } from '@supabase/supabase-js';
 import jwt from 'jsonwebtoken';
 import { parse, serialize } from 'cookie';
 import { db } from '../../../lib/db';
