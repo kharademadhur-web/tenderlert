@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import jwt from 'jsonwebtoken';
 import { parse, serialize } from 'cookie';
-import { db } from '@/lib/db';
-import { users } from '@/schema/users';
+import { db } from '../../../lib/db';
+import { users } from '../../../schema/users';
 import { eq } from 'drizzle-orm';
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;

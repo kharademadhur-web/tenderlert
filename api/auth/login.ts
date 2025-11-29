@@ -1,9 +1,9 @@
-import { db } from "@/lib/db";
-import { users } from "@/schema/users";
+import { db } from "../../lib/db";
+import { users } from "../../schema/users";
 import { eq } from "drizzle-orm";
-import { verifyPassword } from "@/lib/hash";
-import { generateToken } from "@/lib/auth";
-import { success, error } from "@/lib/response";
+import { verifyPassword } from "../../lib/hash";
+import { generateToken } from "../../lib/auth";
+import { success, error } from "../../lib/response";
 
 export async function POST(req: Request) {
     try {
@@ -14,6 +14,8 @@ export async function POST(req: Request) {
             .where(eq(users.email, email));
 
         if (found.length === 0) return error("User not found", 404);
+
+        if (!found[0].password) return error("Please login with Google", 400);
 
         const valid = await verifyPassword(password, found[0].password);
         if (!valid) return error("Invalid credentials", 401);

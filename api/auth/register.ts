@@ -1,8 +1,8 @@
-import { db } from "@/lib/db";
-import { users } from "@/schema/users";
+import { db } from "../../lib/db";
+import { users } from "../../schema/users";
 import { eq } from "drizzle-orm";
-import { hashPassword } from "@/lib/hash";
-import { success, error } from "@/lib/response";
+import { hashPassword } from "../../lib/hash";
+import { success, error } from "../../lib/response";
 
 export async function POST(req: Request) {
     try {

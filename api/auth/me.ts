@@ -1,5 +1,5 @@
-import { verifyToken } from "@/lib/auth";
-import { success, error } from "@/lib/response";
+import { verifyToken } from "../../lib/auth";
+import { success, error } from "../../lib/response";
 
 export async function GET(req: Request) {
     const header = req.headers.get("authorization");

@@ -1,6 +1,6 @@
-import { db } from "@/lib/db";
-import { contacts } from "@/schema/contacts";
-import { success, error } from "@/lib/response";
+import { db } from "../../lib/db";
+import { contacts } from "../../schema/contacts";
+import { success, error } from "../../lib/response";
 
 export async function POST(req: Request) {
     try {
