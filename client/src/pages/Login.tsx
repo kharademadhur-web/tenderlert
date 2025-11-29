@@ -1,139 +1,183 @@
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
-import { Link, useLocation } from "wouter";
-import { Layout } from "@/components/layout/Layout";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useToast } from "@/hooks/use-toast";
-import { useAuthStore } from "@/lib/auth";
-import { loginSchema } from "@shared/schema";
-import { apiRequest } from "@/lib/queryClient";
-import { Bell, Loader2 } from "lucide-react";
-import { z } from "zod";
-
-type LoginFormValues = z.infer<typeof loginSchema>;
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 export default function Login() {
-  const { toast } = useToast();
-  const [, navigate] = useLocation();
-  const { login } = useAuthStore();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [isOAuthLoading, setIsOAuthLoading] = useState(false);
 
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
+  // Handle OAuth token from callback
+  useEffect(() => {
+    const token = searchParams.get('token');
+    const oauthError = searchParams.get('error');
 
-  const mutation = useMutation({
-    mutationFn: async (data: LoginFormValues) => {
-      const response = await apiRequest("POST", "/api/auth/login", data);
-      return response.json();
-    },
-    onSuccess: (data) => {
-      login(data.user, data.token);
-      toast({
-        title: "Welcome back!",
-        description: "You've successfully logged in.",
+    if (oauthError) {
+      setError(`Authentication failed: ${oauthError}`);
+      return;
+    }
+
+    if (token) {
+      // Store JWT token
+      localStorage.setItem('authToken', token);
+
+      // Mark user as logged in
+      localStorage.setItem('isLoggedIn', 'true');
+
+      // Redirect to dashboard
+      navigate('/dashboard');
+    }
+  }, [searchParams, navigate]);
+
+  const handleGoogleLogin = () => {
+    try {
+      setIsOAuthLoading(true);
+      setError('');
+      // Redirect to backend OAuth endpoint
+      // Using full URL to ensure it hits the Vercel API
+      window.location.href = '/api/auth/google/redirect';
+    } catch (err) {
+      setError('Failed to initiate Google login');
+      setIsOAuthLoading(false);
+    }
+  };
+
+  const handleEmailLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
       });
-      if (data.user.role === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/dashboard");
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Login failed'); // Changed data.error to data.message based on response.ts
       }
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Login failed",
-        description: error.message || "Invalid email or password.",
-        variant: "destructive",
-      });
-    },
-  });
 
-  const onSubmit = (data: LoginFormValues) => {
-    mutation.mutate(data);
+      const { data } = await response.json(); // Changed to destructure data based on response.ts
+
+      // Store JWT token
+      localStorage.setItem('authToken', data.token);
+      localStorage.setItem('isLoggedIn', 'true');
+
+      // Redirect to dashboard
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <Layout>
-      <section className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12">
-        <div className="mx-auto max-w-md w-full px-4">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 mb-4">
-              <Bell className="h-8 w-8 text-primary" />
-              <span className="text-2xl font-bold">TenderLert</span>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="w-full max-w-md">
+        <div className="bg-white rounded-lg shadow-lg p-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">TenderLert</h1>
+          <p className="text-gray-600 mb-8">Smart Tender Alerts for Indian Businesses</p>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-700 text-sm">{error}</p>
             </div>
-            <h1 className="text-2xl font-bold">Welcome Back</h1>
-            <p className="text-muted-foreground mt-2">
-              Log in to access your tender dashboard
-            </p>
+          )}
+
+          {/* Google Login Button */}
+          <button
+            onClick={handleGoogleLogin}
+            disabled={isOAuthLoading || loading}
+            className="w-full mb-6 flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition duration-200"
+          >
+            {isOAuthLoading ? (
+              <span className="flex items-center">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Connecting...
+              </span>
+            ) : (
+              <>
+                <img
+                  src="https://www.svgrepo.com/show/475656/google-color.svg"
+                  alt="Google"
+                  className="h-5 w-5 mr-2"
+                />
+                Continue with Google
+              </>
+            )}
+          </button>
+
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">Or continue with email</span>
+            </div>
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Log In</CardTitle>
-              <CardDescription>
-                Enter your credentials to continue
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input type="email" placeholder="you@company.com" {...field} data-testid="input-email" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <Input type="password" placeholder="Enter your password" {...field} data-testid="input-password" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit" className="w-full" disabled={mutation.isPending} data-testid="button-login">
-                    {mutation.isPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Logging in...
-                      </>
-                    ) : (
-                      "Log In"
-                    )}
-                  </Button>
-                </form>
-              </Form>
-              <div className="mt-6 text-center text-sm">
-                <p className="text-muted-foreground">
-                  Don't have an account?{" "}
-                  <Link href="/register" className="text-primary hover:underline">
-                    Register now
-                  </Link>
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Email/Password Form */}
+          <form onSubmit={handleEmailLogin} className="space-y-4 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email Address
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading || isOAuthLoading}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
+            >
+              {loading ? 'Logging in...' : 'Sign In'}
+            </button>
+          </form>
+
+          <div className="text-center">
+            <p className="text-sm text-gray-600">
+              Don't have an account?{' '}
+              <button
+                onClick={() => navigate('/register')}
+                className="font-medium text-indigo-600 hover:text-indigo-500"
+              >
+                Sign up
+              </button>
+            </p>
+          </div>
         </div>
-      </section>
-    </Layout>
+      </div>
+    </div>
   );
 }
