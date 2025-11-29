@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation } from 'wouter';
 
 export default function Login() {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [, navigate] = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -12,8 +11,9 @@ export default function Login() {
 
   // Handle OAuth token from callback
   useEffect(() => {
-    const token = searchParams.get('token');
-    const oauthError = searchParams.get('error');
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const oauthError = params.get('error');
 
     if (oauthError) {
       setError(`Authentication failed: ${oauthError}`);
@@ -23,21 +23,18 @@ export default function Login() {
     if (token) {
       // Store JWT token
       localStorage.setItem('authToken', token);
-
       // Mark user as logged in
       localStorage.setItem('isLoggedIn', 'true');
-
       // Redirect to dashboard
       navigate('/dashboard');
     }
-  }, [searchParams, navigate]);
+  }, [navigate]);
 
   const handleGoogleLogin = () => {
     try {
       setIsOAuthLoading(true);
       setError('');
       // Redirect to backend OAuth endpoint
-      // Using full URL to ensure it hits the Vercel API
       window.location.href = '/api/auth/google/redirect';
     } catch (err) {
       setError('Failed to initiate Google login');
@@ -59,15 +56,13 @@ export default function Login() {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.message || 'Login failed'); // Changed data.error to data.message based on response.ts
+        throw new Error(data.message || 'Login failed');
       }
 
-      const { data } = await response.json(); // Changed to destructure data based on response.ts
-
+      const { data } = await response.json();
       // Store JWT token
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('isLoggedIn', 'true');
-
       // Redirect to dashboard
       navigate('/dashboard');
     } catch (err) {
@@ -141,7 +136,6 @@ export default function Login() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
             </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Password
@@ -155,7 +149,6 @@ export default function Login() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
             </div>
-
             <button
               type="submit"
               disabled={loading || isOAuthLoading}
