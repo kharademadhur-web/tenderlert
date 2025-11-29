@@ -97,7 +97,8 @@ export async function GET(req: Request) {
         );
 
         // Create redirect URL with token
-        const redirectUrl = new URL('/login', 'https://tenderlert.vercel.app'); // Base URL is required for URL constructor
+        const baseUrl = process.env.FRONTEND_URL || 'https://tenderlert.vercel.app';
+        const redirectUrl = new URL('/login', baseUrl);
         redirectUrl.searchParams.append('token', jwtToken);
 
         // Create response
@@ -121,7 +122,8 @@ export async function GET(req: Request) {
     } catch (error) {
         console.error('OAuth callback error:', error);
 
-        const errorUrl = new URL('/login', 'https://tenderlert.vercel.app');
+        const baseUrl = process.env.FRONTEND_URL || 'https://tenderlert.vercel.app';
+        const errorUrl = new URL('/login', baseUrl);
         errorUrl.searchParams.append('error', error instanceof Error ? error.message : 'Authentication failed');
 
         return new Response(null, {

@@ -33,7 +33,7 @@ export default function Register() {
 
   const mutation = useMutation({
     mutationFn: async (data: RegisterFormValues) => {
-      const response = await apiRequest("POST", "/api/clients/register", data);
+      const response = await apiRequest("POST", "/api/auth/register", data);
       return response;
     },
     onSuccess: () => {
@@ -71,7 +71,7 @@ export default function Register() {
                   Get Daily Tender Alerts
                 </h1>
                 <p className="mt-4 text-lg text-muted-foreground">
-                  Join hundreds of businesses receiving AI-categorized tender alerts. 
+                  Join hundreds of businesses receiving AI-categorized tender alerts.
                   Never miss an opportunity again.
                 </p>
               </div>

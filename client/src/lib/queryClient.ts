@@ -33,7 +33,7 @@ export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
-): Promise<Response> {
+): Promise<any> {
   const headers: Record<string, string> = {
     ...getAuthHeaders(),
   };
@@ -48,8 +48,18 @@ export async function apiRequest(
     credentials: "include",
   });
 
-  await throwIfResNotOk(res);
-  return res;
+  // Parse response
+  const responseData = await res.json();
+
+  // Check if request was successful
+  if (!res.ok) {
+    // Throw error with message from backend
+    throw new Error(responseData.message || `${res.status}: ${res.statusText}`);
+  }
+
+  // Return the parsed JSON data
+  // Backend returns { success: true, data: {...} }
+  return responseData;
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
@@ -57,19 +67,19 @@ export const getQueryFn: <T>(options: {
   on401: UnauthorizedBehavior;
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
-  async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
-      credentials: "include",
-      headers: getAuthHeaders(),
-    });
+    async ({ queryKey }) => {
+      const res = await fetch(queryKey.join("/") as string, {
+        credentials: "include",
+        headers: getAuthHeaders(),
+      });
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
-    }
+      if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+        return null;
+      }
 
-    await throwIfResNotOk(res);
-    return await res.json();
-  };
+      await throwIfResNotOk(res);
+      return await res.json();
+    };
 
 export const queryClient = new QueryClient({
   defaultOptions: {
