@@ -1,7 +1,7 @@
-export function success(data: any) {
+export function success(data: any, status = 200) {
     return new Response(JSON.stringify({ success: true, data }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
+        status,
+        headers: { "Content-Type": "application/json" }
     });
 }
 

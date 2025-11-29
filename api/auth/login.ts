@@ -9,26 +9,19 @@ export async function POST(req: Request) {
     try {
         const { email, password } = await req.json();
 
-        const existing = await db
-            .select()
+        const found = await db.select()
             .from(users)
             .where(eq(users.email, email));
 
-        if (existing.length === 0)
-            return error("User not found");
+        if (found.length === 0) return error("User not found", 404);
 
-        const valid = await verifyPassword(password, existing[0].password);
+        const valid = await verifyPassword(password, found[0].password);
+        if (!valid) return error("Invalid credentials", 401);
 
-        if (!valid)
-            return error("Invalid credentials");
-
-        const token = generateToken({
-            id: existing[0].id,
-            email,
-        });
+        const token = generateToken({ id: found[0].id, email });
 
         return success({ token });
-    } catch {
+    } catch (err) {
         return error("Server error", 500);
     }
 }

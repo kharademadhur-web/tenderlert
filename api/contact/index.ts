@@ -7,16 +7,16 @@ export async function POST(req: Request) {
         const { fullName, email, message } = await req.json();
 
         if (!fullName || !email || !message)
-            return error("Missing fields");
+            return error("Missing required fields");
 
         await db.insert(contacts).values({
             fullName,
             email,
-            message,
+            message
         });
 
         return success("Message received!");
-    } catch (err) {
+    } catch {
         return error("Server error", 500);
     }
 }
