@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { parse, serialize } from 'cookie';
 import { db } from '../../../lib/db';
-import { users } from '../../../schema/users';
+import { users } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
@@ -52,7 +52,7 @@ export async function GET(req: Request) {
         // Check if user exists using Drizzle
         const existingUser = await db.select().from(users).where(eq(users.email, googleProfile.email));
 
-        let userId: string;
+        let userId: number;
         let userEmail: string;
         let userName: string;
 
@@ -62,32 +62,32 @@ export async function GET(req: Request) {
                 .set({
                     googleId: googleProfile.id,
                     avatarUrl: googleProfile.picture,
-                    updatedAt: new Date(),
                 })
                 .where(eq(users.id, existingUser[0].id));
 
             userId = existingUser[0].id;
             userEmail = existingUser[0].email;
-            userName = existingUser[0].fullName;
+            userName = existingUser[0].name;
         } else {
             // Create new user from Google profile
             const newUser = await db.insert(users).values({
                 email: googleProfile.email,
-                fullName: googleProfile.name,
+                name: googleProfile.name,
                 googleId: googleProfile.id,
                 avatarUrl: googleProfile.picture,
                 password: null, // OAuth users don't have passwords
+                role: 'client', // Default role
             }).returning();
 
             userId = newUser[0].id;
             userEmail = newUser[0].email;
-            userName = newUser[0].fullName;
+            userName = newUser[0].name;
         }
 
         // Generate JWT token
         const jwtToken = jwt.sign(
             {
-                id: userId, // Changed to 'id' to match login.ts payload
+                id: userId,
                 email: userEmail,
                 googleId: googleProfile.id,
                 name: userName,

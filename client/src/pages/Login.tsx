@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation } from "wouter";
 
 export default function Login() {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [, navigate] = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -12,6 +11,7 @@ export default function Login() {
 
   // Handle OAuth token from callback
   useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
     const token = searchParams.get('token');
     const oauthError = searchParams.get('error');
 
@@ -30,7 +30,7 @@ export default function Login() {
       // Redirect to dashboard
       navigate('/dashboard');
     }
-  }, [searchParams, navigate]);
+  }, [navigate]);
 
   const handleGoogleLogin = () => {
     try {

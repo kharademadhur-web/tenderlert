@@ -1,5 +1,5 @@
 import { db } from "../../lib/db";
-import { users } from "../../schema/users";
+import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { verifyPassword } from "../../lib/hash";
 import { generateToken } from "../../lib/auth";

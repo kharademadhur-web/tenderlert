@@ -7,9 +7,11 @@ import { z } from "zod";
 export const users = pgTable("users", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   email: text("email").notNull().unique(),
-  password: text("password").notNull(),
+  password: text("password"), // Nullable for OAuth
   name: text("name").notNull(),
   role: text("role").notNull().default("client"), // 'client' or 'admin'
+  googleId: text("google_id").unique(),
+  avatarUrl: text("avatar_url"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -95,27 +97,22 @@ export const emailLogsRelations = relations(emailLogs, ({ one }) => ({
 
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
-  id: true,
   createdAt: true,
 });
 
 export const insertClientSchema = createInsertSchema(clients).omit({
-  id: true,
   createdAt: true,
 });
 
 export const insertTenderSchema = createInsertSchema(tenders).omit({
-  id: true,
   createdAt: true,
 });
 
 export const insertEmailLogSchema = createInsertSchema(emailLogs).omit({
-  id: true,
   sentAt: true,
 });
 
 export const insertContactSubmissionSchema = createInsertSchema(contactSubmissions).omit({
-  id: true,
   createdAt: true,
 });
 

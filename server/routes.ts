@@ -2,12 +2,12 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import bcrypt from "bcrypt";
-import { 
-  signupSchema, 
-  loginSchema, 
-  registerClientSchema, 
+import {
+  signupSchema,
+  loginSchema,
+  registerClientSchema,
   contactFormSchema,
-  TENDER_CATEGORIES 
+  TENDER_CATEGORIES
 } from "@shared/schema";
 import { generateToken, requireAuth, requireAdmin, type AuthenticatedRequest } from "./middleware/auth";
 import { categorizeTender, categorizeMultipleTenders } from "./services/aiCategorizer";
@@ -18,14 +18,14 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  
+
   // ==================== AUTH ROUTES ====================
-  
+
   // Signup
   app.post("/api/auth/signup", async (req, res) => {
     try {
       const data = signupSchema.parse(req.body);
-      
+
       const existingUser = await storage.getUserByEmail(data.email);
       if (existingUser) {
         return res.status(400).json({ error: "Email already registered" });
@@ -53,10 +53,14 @@ export async function registerRoutes(
   app.post("/api/auth/login", async (req, res) => {
     try {
       const data = loginSchema.parse(req.body);
-      
+
       const user = await storage.getUserByEmail(data.email);
       if (!user) {
         return res.status(401).json({ error: "Invalid email or password" });
+      }
+
+      if (!user.password) {
+        return res.status(401).json({ error: "Please login with Google" });
       }
 
       const validPassword = await bcrypt.compare(data.password, user.password);
@@ -95,7 +99,7 @@ export async function registerRoutes(
   app.post("/api/clients/register", async (req, res) => {
     try {
       const data = registerClientSchema.parse(req.body);
-      
+
       const existingUser = await storage.getUserByEmail(data.email);
       if (existingUser) {
         return res.status(400).json({ error: "Email already registered" });
@@ -127,7 +131,7 @@ export async function registerRoutes(
         categoryInterested: data.categoryInterested,
       });
 
-      res.status(201).json({ 
+      res.status(201).json({
         message: "Registration successful. Check your email for next steps.",
         clientId: client.id,
       });
@@ -156,7 +160,7 @@ export async function registerRoutes(
   app.patch("/api/clients/preferences", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { categoryInterested } = req.body;
-      
+
       if (!categoryInterested || !TENDER_CATEGORIES.includes(categoryInterested)) {
         return res.status(400).json({ error: "Invalid category" });
       }
@@ -253,7 +257,7 @@ export async function registerRoutes(
   app.post("/api/admin/rerun-today", requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
     try {
       const uncategorized = await storage.getTendersWithoutCategory();
-      
+
       if (uncategorized.length === 0) {
         return res.json({ message: "No uncategorized tenders found", processed: 0 });
       }
@@ -271,7 +275,7 @@ export async function registerRoutes(
         await storage.updateTenderCategory(tenderId, category);
       }
 
-      res.json({ 
+      res.json({
         message: "Categorization complete",
         processed: categorizations.size,
       });
@@ -286,12 +290,12 @@ export async function registerRoutes(
     try {
       const clients = await storage.getAllClients();
       const tenders = await storage.getTodaysTenders();
-      
+
       let alertsSent = 0;
-      
+
       for (const client of clients) {
         if (!client.user?.email) continue;
-        
+
         const matchingTenders = tenders.filter(
           t => t.aiCategory === client.categoryInterested
         );
@@ -309,7 +313,7 @@ export async function registerRoutes(
         }
       }
 
-      res.json({ 
+      res.json({
         message: "Alert job completed",
         clientsNotified: alertsSent,
         totalClients: clients.length,
@@ -325,7 +329,7 @@ export async function registerRoutes(
   app.post("/api/contact", async (req, res) => {
     try {
       const data = contactFormSchema.parse(req.body);
-      
+
       // Save to database
       await storage.createContactSubmission({
         name: data.name,
@@ -351,7 +355,7 @@ export async function registerRoutes(
   app.post("/api/categorize", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { title, department, itemCategory } = req.body;
-      
+
       if (!title) {
         return res.status(400).json({ error: "Title is required" });
       }

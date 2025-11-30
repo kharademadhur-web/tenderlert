@@ -1,5 +1,5 @@
 import { db } from "../../lib/db";
-import { users } from "../../schema/users";
+import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { hashPassword } from "../../lib/hash";
 import { success, error } from "../../lib/response";
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
         const hashed = await hashPassword(password);
 
         await db.insert(users).values({
-            fullName,
+            name: fullName, // Map fullName to name
             email,
             password: hashed
         });
