@@ -1,5 +1,14 @@
 {
   "version": 2,
+  "functions": {
+    "api/**/*.ts": {
+      "runtime": "@vercel/node@3.0.0",
+      "includeFiles": [
+        "lib/**",
+        "shared/**"
+      ]
+    }
+  },
   "builds": [
     {
       "src": "api/**/*.ts",
