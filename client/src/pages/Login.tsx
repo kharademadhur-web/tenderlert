@@ -59,15 +59,13 @@ export default function Login() {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.message || 'Login failed'); // Changed data.error to data.message based on response.ts
+        throw new Error(data.message || 'Login failed');
       }
 
-      const { data } = await response.json(); // Changed to destructure data based on response.ts
-
+      const { data } = await response.json();
       // Store JWT token
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('isLoggedIn', 'true');
-
       // Redirect to dashboard
       navigate('/dashboard');
     } catch (err) {
@@ -141,7 +139,6 @@ export default function Login() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
             </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Password
@@ -155,7 +152,6 @@ export default function Login() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
             </div>
-
             <button
               type="submit"
               disabled={loading || isOAuthLoading}
